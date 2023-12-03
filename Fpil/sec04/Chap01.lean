@@ -150,3 +150,39 @@ instance : OfNat Pos' (n + 1) where
 #check (1 : Pos') + 42
 
 #eval (3 : Pos') * 42
+
+-- ## Even Numbers
+
+inductive Even where
+| zero : Even
+| next : Even → Even
+
+def Even.add : Even → Even → Even
+| Even.zero, e => e
+| Even.next p, e => Even.next $ p.add e
+
+instance : Add Even where
+  add := Even.add
+
+def Even.mul : Even → Even → Even
+| Even.zero, e => Even.zero
+| Even.next p, e => e + e + p.mul e
+
+instance : Mul Even where
+  mul := Even.mul
+
+def Even.toNat : Even → Nat
+| Even.zero => 0
+| Even.next p => 2 + toNat p
+
+instance : ToString Even where
+  toString := toString ∘ Even.toNat
+
+def Even.four := Even.next $ Even.next Even.zero
+
+#eval Even.zero
+#eval Even.four + Even.four
+#eval Even.four * Even.zero
+#eval Even.four * Even.four
+
+-- ## HTTP Requests
