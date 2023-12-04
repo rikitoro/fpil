@@ -165,7 +165,7 @@ instance : Add Even where
   add := Even.add
 
 def Even.mul : Even → Even → Even
-| Even.zero, e => Even.zero
+| Even.zero, _ => Even.zero
 | Even.next p, e => e + e + p.mul e
 
 instance : Mul Even where
