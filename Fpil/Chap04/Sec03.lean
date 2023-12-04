@@ -1,5 +1,5 @@
-import Fpil.sec04.Chap01
-import Fpil.sec04.Chap02
+import Fpil.Chap04.Sec01
+import Fpil.Chap04.Sec02
 
 -- # Controlling Instance Search
 

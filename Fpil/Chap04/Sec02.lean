@@ -1,4 +1,4 @@
-import Fpil.sec04.Chap01
+import Fpil.Chap04.Sec01
 
 -- # Type Classes and Polymorphism
 
