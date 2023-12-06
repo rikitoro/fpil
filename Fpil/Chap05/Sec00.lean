@@ -139,3 +139,60 @@ def inorderSum'' : BinTree Int → WithLog Int Int
     ok (leftSum + x + rightSum)
 
 #eval inorderSum'' bTree4
+
+-- # Numbering Tree Nodes
+
+open BinTree in
+
+def aTree :=
+  branch
+    (branch
+      (branch leaf "a" (branch leaf "b" leaf))
+      "c"
+      leaf)
+    "d"
+    (branch leaf "e" leaf)
+
+def number (t : BinTree α) : BinTree (Nat × α) :=
+  let rec helper (n : Nat) : BinTree α → (Nat × BinTree (Nat × α))
+    | BinTree.leaf => (n, BinTree.leaf)
+    | BinTree.branch left x right =>
+      let (k, numberedLeft) := helper n left
+      let (i, numberedRight) := helper (k + 1) right
+      (i, BinTree.branch numberedLeft (k, x) numberedRight)
+  (helper 0 t).snd
+
+deriving instance Repr for BinTree
+#eval number aTree
+
+def State (σ : Type) (α : Type) : Type :=
+  σ → (σ × α)
+
+def ok_s (x : α) : State σ α :=
+  fun s => (s, x)
+
+def get : State σ σ :=
+  fun s => (s, s)
+
+def set (s : σ) : State σ Unit :=
+  fun _ => (s, ())
+
+def andThen_s (first : State σ α) (next : α → State σ β) : State σ β :=
+  fun s =>
+    let (s', x) := first s
+    next x s'
+
+infixl:55 " ~~> " => andThen_s
+
+def number' (t : BinTree α) : BinTree (Nat × α) :=
+  let rec helper : BinTree α → State Nat (BinTree (Nat × α))
+    | BinTree.leaf => ok_s BinTree.leaf
+    | BinTree.branch left x right =>
+      helper left ~~> fun numberedLeft =>
+      get ~~> fun n =>
+      set (n + 1) ~~> fun () =>
+      helper right ~~> fun numberedRight =>
+      ok_s (BinTree.branch numberedLeft (n, x) numberedRight)
+  (helper t 0).snd
+
+#eval number' aTree
