@@ -1,4 +1,5 @@
 -- import Fpil.Chap05.Sec00
+import Fpil.Chap04.Sec05 -- BinTree
 
 -- # The Monad Type Class
 
@@ -63,9 +64,95 @@ def mapM [Monad m] (f : α → m β) : List α → m (List β)
 def State (σ : Type) (α : Type) : Type :=
   σ → (σ × α)
 
+def ok (x : α) : State σ α :=
+  fun s => (s, x)
+
+def get : State σ σ :=
+  fun s => (s, s)
+
+def set (s : σ) : State σ Unit :=
+  fun _ => (s, ())
+
 instance : Monad (State σ) where
   pure x := fun s => (s, x)
   bind first next :=
     fun s =>
       let (s', x) := first s
       next x s'
+
+def increment (howMuch : Int) : State Int Int :=
+  get >>= fun i =>
+  set (i + howMuch) >>= fun () =>
+  pure i
+
+#eval mapM increment [1, 2, 3, 4, 5] 100
+
+structure WithLog (logged : Type) (α : Type) where
+  log : List logged
+  val : α
+
+def save (data : α) : WithLog α Unit :=
+  {log := [data], val := ()}
+
+instance : Monad (WithLog logged) where
+  pure x := {log := [], val := x}
+  bind result next :=
+    let {log := thisOut, val := thisRes } := result
+    let {log := nextOut, val := nextRes } := next thisRes
+    {log := thisOut ++ nextOut, val := nextRes}
+
+def isEven (i : Int) : Bool :=
+  i % 2 == 0
+
+def saveIfEven (i : Int) : WithLog Int Int :=
+  (if isEven i then
+    save i
+    else pure ()) >>= fun () =>
+  pure i
+
+deriving instance Repr for WithLog
+
+#eval mapM saveIfEven [1, 2, 3, 4 , 5]
+
+-- # The Identity Monad
+
+-- def Id (t : Type) : Type := t
+
+instance : Monad Id where
+  pure x := x
+  bind x f := f x
+
+#eval mapM (m := Id) (· + 1) [1, 2, 3, 4, 5]
+
+-- #eval mapM (· + 1) [1, 2, 3, 4, 5]
+
+-- #eval mapM (fun x => x) [1, 2, 3, 4]
+
+-- # The Monad Contract
+
+-- bind (pure v) f = f v
+-- bind v pure = v
+-- bind (bind v f) g = bind v (fun x => bind (f x) g)
+
+-- # Exercises
+
+-- ## Mapping on a Tree
+
+def BinTree.mapM [Monad m] (f : α → m β) : BinTree α → m (BinTree β)
+  | BinTree.leaf => pure BinTree.leaf
+  | BinTree.branch l x r =>
+    mapM f l >>= fun ml =>
+    f x >>= fun mx =>
+    mapM f r >>= fun mr =>
+    pure $ BinTree.branch ml mx mr
+
+def bTree4 : BinTree Int :=
+  BinTree.branch (BinTree.branch BinTree.leaf 2 BinTree.leaf) 5 (BinTree.branch BinTree.leaf 10 BinTree.leaf)
+
+deriving instance Repr for BinTree
+
+#eval bTree4
+#eval BinTree.mapM increment bTree4 0
+#eval BinTree.mapM saveIfEven bTree4
+
+-- ## The Option Monad Contract
