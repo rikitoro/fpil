@@ -63,3 +63,41 @@ def number (t : BinTree α) : BinTree (Nat × α) :=
       let numberedr ← helper r
       pure (BinTree.branch numberedl (n, x) numberedr)
   (helper t 0).snd
+
+open BinTree in
+def btree1 : BinTree String :=
+  branch
+    (branch leaf "A" leaf)
+    "B"
+    (branch
+      (branch leaf "C" leaf)
+      "D"
+      (branch leaf "E" leaf)
+    )
+
+#eval number btree1
+
+def mapM [Monad m] (f : α → m β) :
+  List α → m (List β)
+  | [] => pure []
+  | x :: xs => do
+    pure $ (← f x) :: (← mapM f xs)
+
+open State in
+def increment : State Nat Nat := do
+  let n ← get
+  set (n + 1)
+  pure n
+
+open State in
+def number' (t : BinTree α) : BinTree (Nat × α) :=
+  let rec helper :
+    BinTree α → State Nat (BinTree (Nat × α))
+    | BinTree.leaf => pure BinTree.leaf
+    | BinTree.branch l x r => do
+      pure $
+        BinTree.branch
+          (← helper l) (← increment, x) (← helper r)
+  (helper t 0).snd
+
+#eval number' btree1
