@@ -101,3 +101,5 @@ def number' (t : BinTree α) : BinTree (Nat × α) :=
   (helper t 0).snd
 
 #eval number' btree1
+
+-- # Exercise
