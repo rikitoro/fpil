@@ -222,3 +222,39 @@ def Many.bind : Many α → (α → Many β) → Many β
 instance : Monad Many where
   pure := Many.one
   bind := Many.bind
+
+def addsTo (goal : Nat) : List Nat → Many (List Nat)
+  | [] =>
+    if goal == 0 then
+      pure []
+    else Many.none
+  | x :: xs =>
+    if x > goal then
+      addsTo goal xs
+    else
+      (addsTo goal xs).union $
+        addsTo (goal - x) xs >>= fun answer =>
+        pure $ x :: answer
+
+#eval Many.take 3 $ addsTo 15 [3, 1, 4, 1, 5, 9, 2, 6]
+#eval Many.takeAll $ addsTo 15 [3, 1, 4, 1, 5, 9, 2, 6]
+#eval Many.takeAll $ addsTo 15 [18, 2, 3, 1, 4, 16, 5, 9]
+
+
+inductive NeedsSearch
+  | div
+  | choose
+
+def applySearch : NeedsSearch → Int → Int → Many Int
+  | NeedsSearch.choose, x, y =>
+    Many.fromList [x, y]
+  | NeedsSearch.div, x, y =>
+    if y == 0 then
+      Many.none
+    else Many.one (x / y)
+
+open Expr Prim NeedsSearch
+
+#eval Many.takeAll $ evaluateM'' applySearch (prim plus (const 1) (prim (other choose) (const 2) (const 5)))
+#eval Many.takeAll $ evaluateM'' applySearch (prim plus (const 1) (prim (other div) (const 2) (const 0)))
+#eval (evaluateM'' applySearch (prim (other div) (const 90) (prim plus (prim (other choose) (const (-5)) (const 5)) (const 5)))).takeAll
