@@ -70,7 +70,7 @@ def stringy : Nat ⊕ Weekday → String
 #eval stringy (.inr .monday : Nat ⊕ Weekday)
 
 def getTheNat : (Nat × α) ⊕ (Nat × β) → Nat
-  | .inl (n, x) | .inr (n, y) => n
+  | .inl (n, _) | .inr (n, _) => n
 
 #eval getTheNat (.inl (10, "hoge") : (Nat × String) ⊕ (Nat × Float))
 #eval getTheNat (.inr (5, 3.14) : (Nat × String) ⊕ (Nat × Float))
@@ -81,7 +81,7 @@ def getTheNat : (Nat × α) ⊕ (Nat × β) → Nat
 def str := "Some string"
 
 def getTheString : (Nat × String) ⊕ (Nat × β) → String
-  | .inl (n, str) | .inr (n, y) => str
+  | .inl (_, str) | .inr (_, _) => str
 
 #eval getTheString (.inl (20, "twenty") : (Nat × String) ⊕ (Nat × String))
 
