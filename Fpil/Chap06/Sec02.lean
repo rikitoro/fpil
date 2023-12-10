@@ -45,3 +45,10 @@ def Nat.asFastPos? (n : Nat) : Option FastPos :=
   if h : n > 0 then
     some ⟨n, h⟩
   else none
+
+
+-- # Validated Input
+
+structure CheckedInput (thisYear : Nat) : Type where
+  name : {n : String // n ≠ ""}
+  birthYear : {y : Nat // y > 1900 ∧ y ≤ thisYear}
