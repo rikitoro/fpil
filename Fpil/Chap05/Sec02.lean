@@ -259,4 +259,33 @@ open Expr Prim NeedsSearch
 #eval Many.takeAll $ evaluateM'' applySearch (prim plus (const 1) (prim (other div) (const 2) (const 0)))
 #eval (evaluateM'' applySearch (prim (other div) (const 90) (prim plus (prim (other choose) (const (-5)) (const 5)) (const 5)))).takeAll
 
--- # Custom Environments
+-- # Custom Enviroments
+
+def Reader (ρ : Type) (α : Type) : Type := ρ → α
+
+def read : Reader ρ ρ := fun env => env
+
+def Reader.pure (x : α) : Reader ρ α := fun _ => x
+
+def Reader.bind {ρ : Type} {α : Type} {β : Type}
+  (result : ρ → α) (next : α → ρ → β) : ρ → β :=
+  fun env => next (result env) env
+
+instance : Monad (Reader ρ) where
+  pure := Reader.pure
+  bind := Reader.bind
+
+abbrev Env : Type := List (String × (Int → Int → Int))
+
+def exampleEnv : Env := [("max", max), ("mod", (· % ·))]
+
+def applyPrimReader (op : String) (x : Int) (y : Int) : Reader Env Int :=
+  read >>= fun env =>
+  match env.lookup op with
+  | none => pure 0
+  | some f => pure $ f x y
+
+open Expr Prim in
+#eval evaluateM'' applyPrimReader (prim (other "max") (prim plus (const 5) (const 4)) (prim times (const 3) (const 2))) $ exampleEnv
+
+-- Exercises
