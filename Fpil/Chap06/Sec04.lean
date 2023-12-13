@@ -1,4 +1,5 @@
 import Fpil.Chap06.Sec02
+import Fpil.Util.Many
 
 -- # Alternatives
 
@@ -77,3 +78,44 @@ def checkLegacyInput (input : RawInput) : Validate (Field × String) LegacyCheck
 #eval checkLegacyInput ⟨"Johnny", "1963"⟩
 #eval checkLegacyInput ⟨"", "1950"⟩
 #eval checkLegacyInput ⟨"", "1970"⟩
+
+-- # The Alternative Class
+
+-- class Alternative (f : Type → Type) extends Applicative f where
+--   failure : f α
+--   orElse : f α → (Unit → f α) → f α
+
+-- instance [Alternative f] : OrElse (f α) where
+--   orElse := Alternative.orElse
+
+instance : Alternative Option where
+  failure := none
+  orElse
+    | some x, _ => some x
+    | none, y => y ()
+
+
+def Many.orElse : Many α → (Unit → Many α) → Many α
+  | .none, ys => ys ()
+  | .more x xs, ys => .more x (fun () => orElse (xs ()) ys)
+
+instance : Alternative Many where
+  failure := .none
+  orElse := Many.orElse
+
+-- def guard [Alternative f] (p : Prop) [Decidable p] : f Unit :=
+--   if p then
+--     pure ()
+--   else failure
+
+def Many.countdown : Nat → Many Nat
+  | 0 => .none
+  | n + 1 => .more n (fun () => countdown n)
+
+def evenDivisors (n : Nat) : Many Nat := do
+  let k ← Many.countdown (n + 1)
+  guard (k % 2 = 0)
+  guard (n % k = 0)
+  pure k
+
+#eval (evenDivisors 20).takeAll
