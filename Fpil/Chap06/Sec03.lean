@@ -1,3 +1,5 @@
+import Fpil.Chap06.Sec02
+
 -- # The Applicative Contract
 
 -- 1. pure id <*> v = v
@@ -14,3 +16,17 @@ def map [Applicative f] (g : α → β) (x : f α) : f β :=
 --   pure : α → f α
 --   seq : f (α → β) → (Unit → f α) → f β
 --   map g x := seq (pure g) (fun () => x)
+
+-- # All Monads are Applicative Functors
+
+-- # Additional Stipulations
+
+def notFun : Validate String (Nat → String) :=
+  .errors { head := "first error", tail := []}
+
+def notArg : Validate String Nat :=
+  .errors { head := "second error", tail := []}
+
+#eval notFun <*> notArg
+
+#eval notFun.andThen fun g => notArg.andThen fun y => pure (g y)
