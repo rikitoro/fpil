@@ -139,3 +139,73 @@ def main' (args : List String) : IO UInt32 := do
 #eval main' []
 #eval main' ["--ascii"]
 #eval main' ["hoge"]
+
+-- # Adding a Reader to Any Monad
+
+-- def ReaderT (ρ : Type u) (m : Type u → Type v) (α : Type u) : Type (max u v) :=
+--   ρ → m α
+
+abbrev ConfigIO' (α : Type) : Type := ReaderT Config IO α
+
+def read [Monad m] : ReaderT ρ m ρ :=
+  fun env => pure env
+
+-- class MonadReader (ρ : outParam (Type u)) (m : Type u → Type v) : Type (max (u + 1) v) where
+--   read : m ρ
+
+instance [Monad m] : MonadReader ρ (ReaderT ρ m) where
+  read := fun env => pure env
+
+-- export MonadReader (read)
+
+instance [Monad m] : Monad (ReaderT ρ m) where
+  pure x := fun _ => pure x
+  bind result next := fun env => do
+    let v ← result env
+    next v env
+
+-- class MonadLift (m : Type u → Type v) (n : Type u → Type w) where
+--   monadLift : {α : Type u} → m α → n α
+
+instance : MonadLift m (ReaderT ρ m) where
+  monadLift action := fun _ => action
+
+def showFileName'' (file : String) : ConfigIO' Unit := do
+  IO.println s!"{(← MonadReader.read).currentPrefix} {file}"
+
+def showDirName'' (dir : String) : ConfigIO' Unit := do
+  IO.println s!"{(← MonadReader.read).currentPrefix} {dir}/"
+
+-- class MonadWithReader (ρ : outParam (Type u)) (m : Type u → Type v) where
+--   withReader {α : Type u} : (ρ → ρ) → m α → m α
+
+-- export MonadWithReader (withReader)
+
+instance : MonadWithReader ρ (ReaderT ρ m) where
+  withReader change action :=
+    fun cfg => action (change cfg)
+
+partial def dirTree'' (path : System.FilePath) : ConfigIO' Unit := do
+  match ← toEntry path with
+  | none => pure ()
+  | some (.file name) => showFileName'' name
+  | some (.dir name) =>
+    showDirName'' name
+    let contents ← path.readDir
+    withReader (·.inDirectory) $
+      doList contents.toList fun d =>
+        dirTree' d.path
+
+def main'' (args : List String) : IO UInt32 := do
+  match configFromArgs args with
+  | some config =>
+    (dirTree'' (← IO.currentDir)).run config
+    pure 0
+  | none =>
+    IO.eprintln s!"Didn't understand argument(s) {" ".separate args}\n"
+    IO.eprintln usage
+    pure 1
+
+#eval main'' []
+#eval main'' ["--ascii"]
+#eval main'' ["hoge"]
