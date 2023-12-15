@@ -38,3 +38,23 @@ instance [Monad m] : Monad (OptionT m) where
 -- structure OptionT (m : Type u → Type v) (α : Type y) :
 --   Type v where
 --   run : m (Option α)
+
+-- def OptionT.mk (x : m (Option α)) : OptionT m α := x
+-- def OptionT.run (x : OptionT m α) : m (Option α) := x
+
+instance [Monad m] : Monad (OptionT m) where
+  pure x := OptionT.mk $ pure $ some x
+  bind action next := OptionT.mk do
+    match ← action with
+    | none => pure none
+    | some v => next v
+
+
+-- # An Alternative Instance
+
+instance [Monad m] : Alternative (OptionT m) where
+  failure := OptionT.mk $ pure none
+  orElse x y := OptionT.mk do
+    match ← x with
+    | some result => pure $ some result
+    | none => y ()
