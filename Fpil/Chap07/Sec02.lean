@@ -58,3 +58,9 @@ instance [Monad m] : Alternative (OptionT m) where
     match ← x with
     | some result => pure $ some result
     | none => y ()
+
+-- # Lifting
+
+instance [Monad m] : MonadLift m (OptionT m) where
+  monadLift action := OptionT.mk do
+    pure $ some $ ← action
