@@ -152,7 +152,7 @@ def consonants :=
   let lowerConsonants := "bcdfghjklmnpqrstvwxz"
   lowerConsonants ++ lowerConsonants.map (·.toUpper)
 
-def countLettters (str : String) : StateT LetterCounts (Except Err') Unit :=
+def countLetters (str : String) : StateT LetterCounts (Except Err') Unit :=
   let rec loop (chars : List Char) := do
     match chars with
     | [] => pure ()
