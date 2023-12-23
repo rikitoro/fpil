@@ -222,3 +222,68 @@ def List.count (p : α → Bool) (xs : List α) : Nat := Id.run do
 --       go ys
 --   return found
 -- `found` cannot be mutated, only variables declared using `let mut` can be mutated. If you did not intent to mutate but define `found`, consider using `let found` instead
+
+-- # What counts as a do block
+
+example : Id Unit := do
+  let mut x := 0
+  x := x + 1
+
+-- example : Id Unit := do
+--   let mut x := 0
+--   let other := do
+--     x := x + 1
+--   other
+-- `x` cannot be mutated, only variables declared using `let mut` can be mutated. If you did not intent to mutate but define `x`, consider using `let x` instead
+
+example : Id Unit := do
+  let mut x := 0
+  let other ← do
+    x := x + 1
+  pure other
+
+-- example : Id Unit := do
+--   let mut x := 0
+--   let addFour (y : Id Nat) := Id.run y + 4
+--   addFour do
+--     x := 5
+-- `x` cannot be mutated, only variables declared using `let mut` can be mutated. If you did not intent to mutate but define `x`, consider using `let x` instead
+
+example : Id Unit := do
+  let mut x := 0
+  -- x := x + 1
+  do x := x + 1  -- redundant do
+
+example : Id Unit := do
+  let mut x := 0
+  if x > 2 then
+    x := x + 2
+
+example : Id Unit := do
+  let mut x := 0
+  if x > 2 then do
+    x := x + 2
+
+example : Id Unit := do
+  let mut x := 0
+  match true with
+  | true => x := x + 1
+  | false => x := 17
+
+example : Id Unit := do
+  let mut x := 0
+  match true with
+  | true => do
+    x := x + 1
+  | false => do
+    x := 17
+
+example : Id Unit := do
+  let mut x := 0
+  for y in [1:5] do
+    x := x + y
+
+example : Id Unit := do
+  let mut x := 0
+  unless 1 < 5 do
+    x := x + 1
