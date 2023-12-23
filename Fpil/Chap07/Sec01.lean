@@ -29,7 +29,7 @@ def toEntry (path : System.FilePath) : IO (Option Entry) := do
 
 
 def Config.preFile (cfg : Config) :=
-  if cfg.useASCII then "|--" else "├"
+  if cfg.useASCII then "|--" else "├─"
 
 def Config.preDir (cfg : Config) :=
   if cfg.useASCII then "|  " else "│"
@@ -147,22 +147,22 @@ def main' (args : List String) : IO UInt32 := do
 
 abbrev ConfigIO' (α : Type) : Type := ReaderT Config IO α
 
-def read [Monad m] : ReaderT ρ m ρ :=
-  fun env => pure env
+-- def read [Monad m] : ReaderT ρ m ρ :=
+--   fun env => pure env
 
 -- class MonadReader (ρ : outParam (Type u)) (m : Type u → Type v) : Type (max (u + 1) v) where
 --   read : m ρ
 
-instance [Monad m] : MonadReader ρ (ReaderT ρ m) where
-  read := fun env => pure env
+-- instance [Monad m] : MonadReader ρ (ReaderT ρ m) where
+--   read := fun env => pure env
 
 -- export MonadReader (read)
 
-instance [Monad m] : Monad (ReaderT ρ m) where
-  pure x := fun _ => pure x
-  bind result next := fun env => do
-    let v ← result env
-    next v env
+-- instance [Monad m] : Monad (ReaderT ρ m) where
+--   pure x := fun _ => pure x
+--   bind result next := fun env => do
+--     let v ← result env
+--     next v env
 
 -- class MonadLift (m : Type u → Type v) (n : Type u → Type w) where
 --   monadLift : {α : Type u} → m α → n α
@@ -171,10 +171,10 @@ instance : MonadLift m (ReaderT ρ m) where
   monadLift action := fun _ => action
 
 def showFileName'' (file : String) : ConfigIO' Unit := do
-  IO.println s!"{(← MonadReader.read).currentPrefix} {file}"
+  IO.println s!"{(← read).currentPrefix}{(← read).preFile} {file}"
 
 def showDirName'' (dir : String) : ConfigIO' Unit := do
-  IO.println s!"{(← MonadReader.read).currentPrefix} {dir}/"
+  IO.println s!"{(← read).currentPrefix}{(← read).preFile} {dir}/"
 
 -- class MonadWithReader (ρ : outParam (Type u)) (m : Type u → Type v) where
 --   withReader {α : Type u} : (ρ → ρ) → m α → m α
@@ -194,7 +194,7 @@ partial def dirTree'' (path : System.FilePath) : ConfigIO' Unit := do
     let contents ← path.readDir
     withReader (·.inDirectory) $
       doList contents.toList fun d =>
-        dirTree' d.path
+        dirTree'' d.path
 
 def main'' (args : List String) : IO UInt32 := do
   match configFromArgs args with
