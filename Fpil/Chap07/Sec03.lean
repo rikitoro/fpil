@@ -2,7 +2,7 @@ import Fpil.Chap07.Sec02
 
 -- # Ordering Monad Transformers
 
-def countLetters [Monad m] [MonadState LetterCounts m] [MonadExcept Err' m] (str : String) : m Unit :=
+def countLetters' [Monad m] [MonadState LetterCounts m] [MonadExcept Err' m] (str : String) : m Unit :=
   let rec loop (chars : List Char) := do
     match chars with
     | [] => pure ()
@@ -21,19 +21,19 @@ def countLetters [Monad m] [MonadState LetterCounts m] [MonadExcept Err' m] (str
 abbrev M1 := StateT LetterCounts (ExceptT Err' Id)
 abbrev M2 := ExceptT Err' (StateT LetterCounts Id)
 
-#eval countLetters (m := M1) "hello" ⟨0, 0⟩
-#eval countLetters (m := M2) "hello" ⟨0, 0⟩
+#eval countLetters' (m := M1) "hello" ⟨0, 0⟩
+#eval countLetters' (m := M2) "hello" ⟨0, 0⟩
 
-#eval countLetters (m := M1) "hello!ab" ⟨0, 0⟩
-#eval countLetters (m := M2) "hello!ab" ⟨0, 0⟩
+#eval countLetters' (m := M1) "hello!ab" ⟨0, 0⟩
+#eval countLetters' (m := M2) "hello!ab" ⟨0, 0⟩
 
 def countWithFallback
   [Monad m] [MonadState LetterCounts m] [MonadExcept Err' m]
   (str : String) : m Unit :=
   try
-    countLetters str
+    countLetters' str
   catch _ =>
-    countLetters "Fallback"
+    countLetters' "Fallback"
 
 #eval countWithFallback (m := M1) "hello" ⟨0, 0⟩
 #eval countWithFallback (m := M2) "hello" ⟨0, 0⟩
