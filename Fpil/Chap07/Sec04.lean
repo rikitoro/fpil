@@ -166,3 +166,59 @@ def parallelLoop := do
     IO.println (x, y)
 
 #eval parallelLoop
+
+
+-- # Mutable Variables
+
+def two : Nat := Id.run do
+  let mut x := 0
+  x := x + 1
+  x := x + 1
+  return x
+
+#eval two
+
+def two' : Nat :=
+  let block : StateT Nat Id Nat := do
+    modify (· + 1)
+    modify (· + 1)
+    return (← get)
+  let (result, _finalState) := block 0
+  result
+
+#eval two'
+
+def three : Nat := Id.run do
+  let mut x := 0
+  for _ in [1, 2, 3] do
+    x := x + 1
+  return x
+
+#eval three
+
+def six : Nat := Id.run do
+  let mut x := 0
+  for y in [1, 2, 3] do
+    x := x + y
+  return x
+
+#eval six
+
+
+def List.count (p : α → Bool) (xs : List α) : Nat := Id.run do
+  let mut found := 0
+  for x in xs do
+    if p x then found := found + 1
+  return found
+
+#eval [3,1,4,1].count (fun n => n % 2 == 1)
+
+-- def List.count' (p : α → Bool) (xs : List α) : Nat := Id.run do
+--   let mut found := 0
+--   let rec go : List α → Id Unit
+--     | [] => pure ()
+--     | y :: ys => do
+--       if p y then found := found + 1
+--       go ys
+--   return found
+-- `found` cannot be mutated, only variables declared using `let mut` can be mutated. If you did not intent to mutate but define `found`, consider using `let found` instead
