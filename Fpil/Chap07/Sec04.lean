@@ -109,3 +109,60 @@ instance : ForM m AllLessThan Nat where
   forM := AllLessThan.forM
 
 #eval forM { num := 5 : AllLessThan} IO.println
+
+
+-- # Stopping Iteration
+
+def OptionT.exec [Applicative m] (action : OptionT m α) : m Unit :=
+  action *> pure ()
+
+def countToThree (n : Nat) : IO Unit :=
+  let nums : AllLessThan := ⟨n⟩
+  OptionT.exec $
+    forM nums fun i => do
+      if i < 3 then failure else IO.println i
+
+#eval countToThree 7
+
+instance : ForIn m AllLessThan Nat where
+  forIn := ForM.forIn
+
+def countToThree' (n : Nat) : IO Unit := do
+  let nums : AllLessThan := ⟨n⟩
+  for i in nums do
+    if i < 3 then break
+    IO.println i
+
+#eval countToThree' 7
+
+def List.find_? (p : α → Bool) (xs : List α) : Option α := do
+  for x in xs do
+    if p x then return x
+  failure
+
+def num_list := [3, 1, 4, 1, 5, 9]
+#eval num_list.find_? (fun x => x % 5 == 0)
+#eval num_list.find_? (fun x => x % 7 == 0)
+
+def List.find__? (p : α → Bool) (xs : List α) : Option α := do
+  for x in xs do
+    if not (p x) then continue
+    return x
+  failure
+
+#eval num_list.find__? (fun x => x % 5 == 0)
+#eval num_list.find__? (fun x => x % 7 == 0)
+
+#check [4:9:2]
+
+def fourToEight : IO Unit := do
+  for i in [4:9:2] do
+    IO.println i
+
+#eval fourToEight
+
+def parallelLoop := do
+  for x in ["currant", "gooseberry", "rowan"], y in [4 : 8] do
+    IO.println (x, y)
+
+#eval parallelLoop
