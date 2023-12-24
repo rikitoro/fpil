@@ -44,3 +44,17 @@ instance {t : NestedPairs} : BEq t.asType where
 --
 -- failed to synthesize instance
 --   BEq (NestedPairs.asType t)
+
+-- # A Universe of Finite Types
+
+inductive Finite where
+  | unit : Finite
+  | bool : Finite
+  | pair : Finite → Finite → Finite
+  | arr : Finite → Finite → Finite -- arrow
+
+abbrev Finite.asType : Finite → Type
+  | .unit => Unit
+  | .bool => Bool
+  | .pair t1 t2 => asType t1 × asType t2
+  | .arr t1 t2 => asType t1 → asType t2
