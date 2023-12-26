@@ -94,8 +94,9 @@ mutual
           fun _ => r
       args.foldr (
         fun arg rest =>
-          (t2.functions rest).map fun more =>
-            fun f => more (f arg) f)
+          (t2.functions rest).map
+            fun more =>
+              fun f => more (f arg) f )
       base
 
 
