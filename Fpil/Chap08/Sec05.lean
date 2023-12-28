@@ -44,3 +44,20 @@ def appendL : Vect α n → Vect α k → Vect α (n.plusL k)
 --   | n + 1, k, .cons x xs, ys => _
 
 -- # Propositional Equality
+
+def plusR_zero_left : (k : Nat) → k = Nat.plusR 0 k
+  | 0 => by rfl
+  | k + 1 =>
+    congrArg (· + 1) (plusR_zero_left k)
+
+def plusR_succ_left (n : Nat) : (k : Nat) → Nat.plusR (n + 1) k = Nat.plusR n k + 1
+  | 0 => by rfl
+  | k + 1 => congrArg (· + 1) (plusR_succ_left n k)
+
+-- def appendR : (n k : Nat) → Vect α n → Vect α k → Vect α (n.plusR k)
+--   | 0, k, .nil, ys => plusR_zero_left k ▸ ys
+--   | n + 1, k, .cons x xs, ys => plusR_succ_left n k ▸ .cons x (appendR n k xs ys)
+
+def appendR : Vect α n → Vect α k → Vect α (n.plusR k)
+  | .nil, ys => plusR_zero_left _ ▸ ys
+  | .cons x xs, ys => plusR_succ_left _ _ ▸ .cons x (appendR xs ys)
