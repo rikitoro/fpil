@@ -32,3 +32,15 @@ def Nat.plusR : Nat → Nat → Nat
 def appendL : Vect α n → Vect α k → Vect α (n.plusL k)
   | .nil, ys => ys
   | .cons x xs, ys => .cons x (appendL xs ys)
+
+-- # Getting Stuck on addition
+
+-- def appendR : (n k : Nat) → Vect α n → Vect α k → Vect α (n.plusR k)
+--   | 0, k, .nil, ys => (_ : Vect α k)
+--   | n + 1, k, .cons x xs, ys => _
+
+-- def appendR : (n k : Nat) → Vect α n → Vect α k → Vect α (n + k)
+--   | 0, k, .nil, ys => (_ : Vect α k)
+--   | n + 1, k, .cons x xs, ys => _
+
+-- # Propositional Equality
