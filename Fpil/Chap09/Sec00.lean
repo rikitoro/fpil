@@ -38,3 +38,21 @@ theorem plusR_zero_left''' (k : Nat) : k = Nat.plusR 0 k := by
   induction k <;> simp [Nat.plusR] <;> assumption
 
 -- # Induction on Other Datatypes
+
+def BinTree.count : BinTree α → Nat
+  | .leaf => 0
+  | .branch l _ r =>
+    1 + l.count + r.count
+
+def BinTree.mirror : BinTree α → BinTree α
+  | .leaf => .leaf
+  | .branch l x r => .branch (mirror r) x (mirror l)
+
+def BinTree.mirror_count (t : BinTree α) : t.mirror.count = t.count := by
+  induction t with
+  | leaf => simp [BinTree.mirror]
+  | branch l _ r ihl ihr =>
+    simp_arith [BinTree.mirror, BinTree.count, ihl, ihr]
+
+def BinTree.mirror_count' (t : BinTree α) : t.mirror.count = t.count := by
+  induction t <;> simp_arith [BinTree.mirror, BinTree.count, *]
