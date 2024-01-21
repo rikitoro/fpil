@@ -78,6 +78,51 @@ def Vect.zip : Vect α n → Vect β n → Vect (α × β) n
 -- but is expected to have type
 --   Vect β 0 : Type ?u.14227
 
-def Vectt.zip_ : (n : Nat) → Vect α n → Vect β n → Vect (α × β) n
+def Vect.zip_ : (n : Nat) → Vect α n → Vect β n → Vect (α × β) n
   | 0, .nil, .nil => .nil
   | k + 1, .cons x xs, .cons y ys => .cons (x, y) $ zip_ k xs ys
+
+-- ## Exercises
+
+-- ### Vect.zip
+
+deriving instance Repr for Vect
+
+def oregonianPeaks : Vect String 3 :=
+  .cons "Nount Hood" <| .cons "Mount Jefferson" <| .cons "South Sister" .nil
+
+def danishPeaks :=
+  Vect.cons "Møllehøj" <| .cons "Yding Skovhøj" <| .cons "Ejer Bavnehøj" .nil
+
+#eval oregonianPeaks.zip danishPeaks
+
+
+-- ### Vect.map
+
+def Vect.map (f : α → β) : Vect α n → Vect β n
+  | .nil => .nil
+  | .cons x xs =>
+    .cons (f x) <| map f xs
+
+#eval oregonianPeaks.map (·.length)
+
+
+-- ### Vect.zipWith
+
+def Vect.zipWith (f : α → β → γ) : Vect α n → Vect β n → Vect γ n
+  | .nil, .nil => .nil
+  | .cons x xs, .cons y ys =>
+    .cons (f x y) <| zipWith f xs ys
+
+#eval oregonianPeaks.zipWith (· ++ ·) danishPeaks
+
+
+-- ### Vect.unzip
+
+def Vect.unzip : Vect (α × β) n → Vect α n × Vect β n
+  | .nil => (.nil, .nil)
+  | .cons (x, y) xys =>
+    let p := unzip xys
+    (.cons x p.fst, .cons y p.snd)
+
+#eval Vect.unzip <| oregonianPeaks.zip danishPeaks
