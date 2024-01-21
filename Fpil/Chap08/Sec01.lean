@@ -126,3 +126,45 @@ def Vect.unzip : Vect (α × β) n → Vect α n × Vect β n
     (.cons x p.fst, .cons y p.snd)
 
 #eval Vect.unzip <| oregonianPeaks.zip danishPeaks
+
+
+-- ### Vect.snoc
+
+def Vect.snoc : Vect α n → α → Vect α (n + 1)
+  | .nil, y =>
+    .cons y .nil
+  | .cons x xs, y =>
+    .cons x <| snoc xs y
+
+#eval oregonianPeaks.snoc "Mt Fuji"
+
+
+-- ### Vect.reverse
+
+def Vect.reverse : Vect α n → Vect α n
+  | .nil => .nil
+  | .cons x xs =>
+    reverse xs |>.snoc x
+
+#eval oregonianPeaks.reverse
+
+
+-- ### Vect.drop
+
+def Vect.drop : (n : Nat) → Vect α (k + n) → Vect α k
+  | 0, xs => xs
+  | m + 1, .cons _ xs =>
+    drop m xs
+
+#eval danishPeaks.drop 2
+
+
+-- ### Vect.take
+
+def Vect.take : (n : Nat) → Vect α (k + n) → Vect α n
+  | 0, _ => .nil
+  | m + 1, .cons x xs =>
+    .cons x <| take m xs
+
+#eval oregonianPeaks.take 1
+#eval oregonianPeaks.take 2
